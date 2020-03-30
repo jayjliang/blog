@@ -1,0 +1,69 @@
+<p>&nbsp; &nbsp; 本篇文章内容是基于iPhoneX模拟器进行实验的，真机上的效果目前还有待验证。KM上有一篇iPhoneX适配的文章《<a href="http://km.oa.com/group/18297/articles/show/320277?kmref=home_headline" target="_blank" rel="noopener">iPhoneX web适配（基于QQ H5）</a>》大家可以结合起来一起看。</p>
+<p>&nbsp; &nbsp; 话不多说，先总结下iPhoneX带来的两个布局问题，相信很多读者已经知道了，就是<strong>顶部刘海以及底部home键操作区域</strong>，那在各种情况下到底表现如何，看下面的demo。</p>
+<h3>&nbsp; &nbsp; <strong>1.正常非透顶webview</strong></h3>
+<h3>&nbsp; &nbsp; &nbsp; 1.1 内容区域小于等于100%</h3>
+<p><img src="http://km.oa.com/files/photos/pictures/201711/1511270808_48_w250_h491.png" /><img src="http://km.oa.com/files/photos/pictures/201711/1511271009_49_w250_h491.png" /></p>
+<p>这里body设置背景色为白色，内容区域小于等于屏幕高度，也就是没有自然滚动条的情况下（局部滚动也会造成这种情况），可以看到顶部没有任何影响，但是<strong>底部会有灰色区域</strong>。这个看情况会对业务是否造成影响。以群公告为例，看下它在iPhoneX下的表现，如上图</p>
+<p>解决办法：</p>
+<p><strong>1.增加viewport-fit=cover</strong></p>
+<p>&nbsp; &nbsp; 这种办法实际上可以看做是由ios11回退到ios10的表现。这个值默认是auto，auto的表现和contain是一样的。</p>
+<p><img src="http://km.oa.com/files/photos/pictures/201711/1511271055_2_w250_h491.png" /><img src="http://km.oa.com/files/photos/pictures/201711/1511271055_11_w250_h491.png" /></p>
+<p>&nbsp; &nbsp; 最终效果如上图。这里我们更换背景色为#777，方便下面的效果对比。</p>
+<p><strong>2.调用mqq接口或者使用手Q webview提供的能力</strong></p>
+<p>&nbsp; &nbsp;手Q728对ipx提供了适配的能力支持，增加wvx参数以及mqq接口来设置顶部和底部适配层，具体的可以看文章<a target="_blank" href="http://km.oa.com/group/11800/articles/show/321041" rel="noopener">http://km.oa.com/group/11800/articles/show/321041</a></p>
+<p></p>
+<h3>&nbsp; &nbsp; &nbsp; &nbsp; 1.2 内容区域大于100%</h3>
+<p><img src="http://km.oa.com/files/photos/pictures/201711/1511271154_98_w250_h491.png" /><img src="http://km.oa.com/files/photos/pictures/201711/1511271154_45_w250_h491.png" /><img src="http://km.oa.com/files/photos/pictures/201711/1511271164_96_w250_h491.png" /></p>
+<p></p>
+<p>&nbsp; &nbsp; 可以看到，底部灰色区域被挤到滚动条最下方去了，这里对页面基本上没有什么影响。只是底部的黑色条会显示在页面内容中，具体看上面群活动业务截图。</p>
+<p>&nbsp; &nbsp; 设计规范是底部安全区域不可有点击元素，所以可以在页面底部预留padding-bottom</p>
+<p>&nbsp;&nbsp;</p>
+<h3>&nbsp; &nbsp; 1.3 fixed在底部的元素</h3>
+<p><img src="http://km.oa.com/files/photos/pictures/201711/1511271197_3_w250_h491.png" /></p>
+<p>可以看到，正常情况下button区域是fixed在灰色区域上方的，这里如果你在头部加上viewport-fit=cover，效果如下：</p>
+<p><img src="http://km.oa.com/files/photos/pictures/201711/1511271316_64_w250_h491.png" /><img src="http://km.oa.com/files/photos/pictures/201711/1511271317_88_w250_h491.png" /></p>
+<p>所以看到这里，相信大家对正常页面下cover模式应该有一个自己的认知了，就是去除了下方灰色区域，让页面布局从灰色区域开始。</p>
+<p></p>
+<h3>2.透顶webview</h3>
+<p>这种情况下，基本上很多业务都需要进行更改，主要影响的是头部，我们来看具体表现。</p>
+<h3>&nbsp; &nbsp; 2.1 头部元素</h3>
+<p><img src="http://km.oa.com/files/photos/pictures/201711/1511271377_12_w250_h491.png" /></p>
+<p>可以看到，底部这个时候是没有灰色区域的。就像我们在非透顶模式下设置了cover模式一样。</p>
+<p>但是最大的不同是顶部距离。一般ios下页面内容距离顶部64px左右，但是在ipx下内容区域是偏上的，如下图：</p>
+<p><img src="http://km.oa.com/files/photos/pictures/201711/1511271392_93_w250_h491.png" /></p>
+<p>我们设置padding-top为88px时，页面内容才是在我们想要的位置，如下图，也就是说内容会偏上24px左右。</p>
+<p><img src="http://km.oa.com/files/photos/pictures/201711/1511271409_91_w250_h491.png" /></p>
+<p>解决方法：</p>
+<p>&nbsp; &nbsp; <strong>设置页面为cover模式，同时使用constant(safe-area-inset-top)。</strong></p>
+<p>为了适配缺口，ios11包含了一些常量，但是这些常量需要设置为cover模式才会生效。这里可以用到的常量为safe-area-inset-top，safe-area-inset-left，safe-area-inset-bottom，safe-area-inset-right。</p>
+<div class="km_insert_code">
+<pre><code><span class="hljs-selector-tag">padding</span>: 56<span class="hljs-selector-tag">px</span> 0 0 0;
+<span class="hljs-selector-tag">padding</span>: <span class="hljs-selector-tag">constant</span>(<span class="hljs-selector-tag">safe-area-inset-top</span>) 0 0 0;<br /><span class="hljs-selector-tag">padding</span>: <span class="hljs-selector-tag">env</span>(<span class="hljs-selector-tag">safe-area-inset-top</span>) 0 0 0;</code></pre>
+</div>
+<p>&nbsp;上图这种写法在非ipx机器下会是64px，ipx机器下会是下面的常量。</p>
+<p>需要注意的是：</p>
+<p>&nbsp; &nbsp; 1. <span style="color: #ff0000;">ios11.2移除了constant变量的支持，改成env，所以为了适配，你需要在constant下加上env</span>。如上面代码所示。</p>
+<p>&nbsp; &nbsp; 2. <span style="color: #ff0000;">有些css压缩工具会检测到constant和env重叠，然后去掉constant，这里需要自己对打包出来的css做一下检查</span>。</p>
+<p>当然也可以检测屏幕像素来区分ipx机型，同时加上指定css，这里测得的数据是在透顶模式下，window.innerWidth和window.innerHeight分别为375， 812。</p>
+<h3>&nbsp; &nbsp; 2.2 底部fixed元素</h3>
+<p><img src="http://km.oa.com/files/photos/pictures/201711/1511271437_16_w250_h491.png" /></p>
+<p>可以看到，底部fixed元素的位置和我们在非透顶模式下设置cover模式表现是一致的。</p>
+<p>解决办法：</p>
+<p>&nbsp; &nbsp;&nbsp;<strong>设置页面为cover模式，同时使用constant(safe-area-inset-bottom)</strong></p>
+<div class="km_insert_code">
+<pre><code><span class="hljs-selector-tag">bottom</span>: 0;
+<span class="hljs-selector-tag">bottom</span>: <span class="hljs-selector-tag">constant</span>(<span class="hljs-selector-tag">safe-area-inset-bottom</span>);<br /><span class="hljs-selector-tag">bottom</span>: <font color="#f92672">env</font>(<span class="hljs-selector-tag">safe-area-inset-bottom</span>);</code></pre>
+</div>
+<p>&nbsp; &nbsp; 效果如下图&nbsp;</p>
+<p><img src="http://km.oa.com/files/photos/pictures/201711/1511271463_13_w250_h491.png" /><img src="http://km.oa.com/files/photos/pictures/201711/1511271450_6_w250_h491.png" /></p>
+<p>&nbsp; &nbsp; 这里测试的时候发现需要注意的一点是，不要在非cover模式下使用这些变量，因为结果可能为0，也就是说如果你的bottom默认是10px的话，你没有设置cover模式，同时使用上面的变量，最后<span class="hljs-selector-tag">constant</span>(<span class="hljs-selector-tag">safe-area-inset-bottom</span>)的值在非ipx下可能为0，会带来一些意外的效果。</p>
+<p>&nbsp; &nbsp; 另外一点需要注意的是，这些变量是在ios11下工作的，也就是说在iPhone8下这些变量也是正常计算的。<strong>constant(safe-area-inset-bottom)在iPhone8的手Q下</strong>，位置就类似与64px所到达的位置，这个应该是手q webview另外加的一些能力。</p>
+<p><strong>总结：</strong></p>
+<p>&nbsp; &nbsp; 总体来看，非透顶模式影响较小，透顶模式影响较大。</p>
+<p>&nbsp; &nbsp; 非透顶模式下主要可能需要处理的是页面底部灰色区域，以及黑色条显示在页面内容中，这个根据具体业务来决定是否兼容。</p>
+<p>&nbsp; &nbsp; 透顶模式下，主要是页面顶部上移以及底部fixed元素会从home操作区域开始计算。使用ios11提供的css常量目前看来可以解决这个问题。</p>
+<p>&nbsp; &nbsp; 遗留下来的问题是除了比较宽高，有没有比较优雅的办法检测是否是ipx。</p>
+<p>&nbsp; &nbsp; 当然以上的内容都是在模拟器中去实验的，具体效果还得看真机。大家有什么好的解决方法也欢迎交流，文章如果有错误或者不一致的地方，欢迎大家斧正，提出来一起交流~</p>
+<p>参考文章：</p>
+<p>&nbsp; &nbsp; 1.&nbsp;https://robin-front.github.io/2017/09/21/Understanding-the-WebView-Viewport-in-iOS-11/</p>
+<p>&nbsp; &nbsp; 2.&nbsp;https://robin-front.github.io/2017/09/21/the-notch-and-css/</p>
